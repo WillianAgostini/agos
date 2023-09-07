@@ -45,5 +45,13 @@
     "router",
     "app",
     "api"
-  ]
+  ],
+  "bugs": {
+    "url": "https://github.com/WillianAgostini/agos/issues"
+  },
+  "homepage": "https://github.com/WillianAgostini/agos#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WillianAgostini/agos.git"
+  }
 }
