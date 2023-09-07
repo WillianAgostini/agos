@@ -25,9 +25,9 @@ describe("routerTree", () => {
   it("Find route by path with params", async () => {
     let params: any = {};
     app.post("/test/:id", (req) => {
-      params = req.params
+      params = req.params;
     });
-    
+
     const request = httpMocks.createRequest({
       method: "POST",
       url: "/test/1",
@@ -38,6 +38,6 @@ describe("routerTree", () => {
 
     const response = httpMocks.createResponse();
     await app.execute(request, response);
-    expect(params?.id).toBe('1');
+    expect(params?.id).toBe("1");
   });
 });
