@@ -1,4 +1,6 @@
-export function bodyToJson() {
+import { request } from "./types";
+
+export function bodyToJson(this: request) {
   return new Promise((resolve, reject) => {
     const body: Buffer[] = [];
     this.on("error", (err: any) => {
