@@ -7,8 +7,8 @@ export type response = ServerResponse<IncomingMessage> & {
 };
 
 export type request = IncomingMessage & {
-  json: () => Promise<unknown>;
-  params: object;
+  json: () => Promise<any>;
+  params: any;
   searchParams: URLSearchParams;
 };
 
