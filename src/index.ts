@@ -1,4 +1,10 @@
 import cluster from "node:cluster";
+import {
+  IncomingMessage,
+  Server,
+  ServerResponse,
+  createServer,
+} from "node:http";
 import { availableParallelism } from "node:os";
 import { bodyToJson } from "./request";
 import { responseToJson } from "./response";
@@ -51,7 +57,49 @@ async function getRouteBy(path?: string, method?: string) {
   return;
 }
 
-const startWithCluster = async (handler: () => Promise<void>) => {
+const servers: Server<typeof IncomingMessage, typeof ServerResponse>[] = [];
+
+const listen = (
+  hostname: string,
+  port: number,
+  handler?: () => Promise<void> | void,
+): Promise<void> => {
+  const server = createServer(async (req, res) => {
+    try {
+      await execute(req as request, res as response);
+    } catch (err) {
+      res.statusCode = 500;
+      res.end("Internal Server Error");
+    }
+  });
+  servers.push(server);
+  return new Promise((resolve) => {
+    server.listen(port, hostname, async () => {
+      if (handler) await handler();
+      resolve();
+    });
+  });
+};
+
+const start = async (
+  hostname: string,
+  port: number,
+  handler?: () => Promise<void> | void,
+) => {
+  await listen(hostname, port, handler);
+};
+
+const finish = () => {
+  for (const server of servers) {
+    server.close();
+  }
+};
+
+const startWithCluster = async (
+  hostname: string,
+  port: number,
+  handler: () => Promise<void> | void,
+) => {
   const numCPUs = availableParallelism();
 
   if (cluster.isPrimary) {
@@ -65,7 +113,7 @@ const startWithCluster = async (handler: () => Promise<void>) => {
       console.log(`worker ${worker.process.pid} died`);
     });
   } else {
-    await handler();
+    await start(hostname, port, handler);
     console.log(`Worker ${process.pid} started`);
   }
 };
@@ -77,5 +125,7 @@ export default {
   patch: newPatchRoute,
   delete: newDeleteRoute,
   execute,
+  start,
   startWithCluster,
+  finish,
 };
