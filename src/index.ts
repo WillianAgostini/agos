@@ -11,12 +11,15 @@ import { responseToJson } from "./response";
 import { RouterTree } from "./routerTree";
 import { Handler, request, response } from "./types";
 
+const routeTreeAll = new RouterTree();
 const routeTreeGet = new RouterTree();
 const routeTreePost = new RouterTree();
 const routeTreePut = new RouterTree();
 const routeTreePatch = new RouterTree();
 const routeTreeDelete = new RouterTree();
 
+const newAllRoute = (endpoint: string, fn: Handler) =>
+  routeTreeAll.addRoute(endpoint, fn);
 const newGetRoute = (endpoint: string, fn: Handler) =>
   routeTreeGet.addRoute(endpoint, fn);
 const newPostRoute = (endpoint: string, fn: Handler) =>
@@ -44,6 +47,9 @@ async function execute(req: request, res: response) {
 }
 
 async function getRouteBy(path?: string, method?: string) {
+  const route = routeTreeAll.findRoute(path);
+  if (route) return route;
+
   if (method === "GET") return routeTreeGet.findRoute(path);
 
   if (method === "POST") return routeTreePost.findRoute(path);
@@ -82,11 +88,13 @@ const listen = (
 };
 
 const start = async (
-  hostname: string,
-  port: number,
+  opts: {
+    hostname: string;
+    port: number;
+  },
   handler?: () => Promise<void> | void,
 ) => {
-  await listen(hostname, port, handler);
+  await listen(opts.hostname, opts.port, handler);
 };
 
 const finish = () => {
@@ -96,16 +104,19 @@ const finish = () => {
 };
 
 const startWithCluster = async (
-  hostname: string,
-  port: number,
+  opts: {
+    hostname: string;
+    port: number;
+    numCPUs: number;
+  },
   handler: () => Promise<void> | void,
 ) => {
-  const numCPUs = availableParallelism();
+  opts.numCPUs = opts.numCPUs || availableParallelism();
 
   if (cluster.isPrimary) {
     console.log(`Primary ${process.pid} is running`);
 
-    for (let i = 0; i < numCPUs; i++) {
+    for (let i = 0; i < opts.numCPUs; i++) {
       cluster.fork();
     }
 
@@ -113,19 +124,20 @@ const startWithCluster = async (
       console.log(`worker ${worker.process.pid} died`);
     });
   } else {
-    await start(hostname, port, handler);
+    await start(opts, handler);
     console.log(`Worker ${process.pid} started`);
   }
 };
-
-export default {
+const app = {
   get: newGetRoute,
   post: newPostRoute,
   put: newPutRoute,
   patch: newPatchRoute,
   delete: newDeleteRoute,
+  all: newAllRoute,
   execute,
   start,
   startWithCluster,
   finish,
 };
+export { app };
