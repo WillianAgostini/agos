@@ -17,8 +17,8 @@ describe("start", () => {
     );
   });
 
-  afterEach(() => {
-    app.finish();
+  afterEach(async () => {
+    await app.finish();
   });
 
   it("create server and return data from get request", async () => {
