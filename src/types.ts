@@ -16,4 +16,7 @@ export type fn = {
   handler?: Handler;
 };
 
-export type Handler = (req: request, res: response) => Promise<void> | void;
+export type Handler = (
+  req: request | any,
+  res: response | any,
+) => Promise<void> | void;

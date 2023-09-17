@@ -63,6 +63,11 @@ async function getRouteBy(path?: string, method?: string) {
   return;
 }
 
+const middlewares: Handler[] = [];
+const newMiddleware = (handler: any) => {
+  middlewares.push(handler);
+};
+
 const servers: Server<typeof IncomingMessage, typeof ServerResponse>[] = [];
 
 const listen = (
@@ -72,6 +77,10 @@ const listen = (
 ): Promise<void> => {
   const server = createServer(async (req, res) => {
     try {
+      console.log("debug");
+      for (const middleware of middlewares) {
+        await middleware(req as request, res as response);
+      }
       await execute(req as request, res as response);
     } catch (err) {
       res.statusCode = 500;
@@ -97,9 +106,18 @@ const start = async (
   await listen(opts.hostname, opts.port, handler);
 };
 
-const finish = () => {
+const close = (
+  server: Server<typeof IncomingMessage, typeof ServerResponse>,
+) => {
+  return new Promise((resolve) => {
+    server.closeAllConnections();
+    server.close(resolve);
+  });
+};
+
+const finish = async () => {
   for (const server of servers) {
-    server.close();
+    await close(server);
   }
 };
 
@@ -128,6 +146,7 @@ const startWithCluster = async (
     console.log(`Worker ${process.pid} started`);
   }
 };
+
 const app = {
   get: newGetRoute,
   post: newPostRoute,
@@ -135,9 +154,11 @@ const app = {
   patch: newPatchRoute,
   delete: newDeleteRoute,
   all: newAllRoute,
+  use: newMiddleware,
   execute,
   start,
   startWithCluster,
   finish,
 };
+
 export { app };
