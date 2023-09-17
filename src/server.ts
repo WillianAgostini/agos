@@ -47,7 +47,7 @@ export const startWithCluster = async (
   opts: {
     hostname: string;
     port: number;
-    numCPUs: number;
+    numCPUs?: number;
   },
   handler: () => Promise<void> | void,
 ) => {

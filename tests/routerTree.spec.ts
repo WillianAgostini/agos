@@ -42,4 +42,20 @@ describe("routerTree", () => {
     const routerInfo = routeTree.findRoute("/state?id=1");
     expect(routerInfo?.searchParams.get("id")).toBe("1");
   });
+
+  it("Not found route", async () => {
+    const routeTree = new RouterTree();
+    routeTree.addRoute("/state", () => {});
+
+    const routerInfo = routeTree.findRoute("/not-found");
+    expect(routerInfo?.handler).toBeFalsy();
+  });
+
+  it("Not found route for empty path", async () => {
+    const routeTree = new RouterTree();
+    routeTree.addRoute("/state", () => {});
+
+    const routerInfo = routeTree.findRoute();
+    expect(routerInfo?.handler).toBeFalsy();
+  });
 });

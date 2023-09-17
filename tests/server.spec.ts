@@ -49,4 +49,16 @@ describe("start", () => {
     const response = await post(`http://localhost:${port}/test`, { id: "1" });
     expect(response.data).toEqual({ id: "1" });
   });
+
+  it("Throw error", async () => {
+    app.all("/test", async () => {
+      throw new Error("Error");
+    });
+
+    try {
+      await post(`http://localhost:${port}/test`, { id: "1" });
+    } catch (error) {
+      expect(error.message).toEqual("Internal Server Error");
+    }
+  });
 });
