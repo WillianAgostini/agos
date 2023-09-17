@@ -34,6 +34,4 @@ export async function getRouteBy(path?: string, method?: string) {
   if (method === "PATCH") return routeTreePatch.findRoute(path);
 
   if (method === "DELETE") return routeTreeDelete.findRoute(path);
-
-  return;
 }
