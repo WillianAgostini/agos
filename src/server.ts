@@ -7,15 +7,13 @@ import {
 } from "node:http";
 import { availableParallelism } from "node:os";
 import { execute } from "./index";
-import { request, response } from "./types";
-
-const servers: Server<typeof IncomingMessage, typeof ServerResponse>[] = [];
+import { HttpServer, request, response } from "./types";
 
 const listen = (
   hostname: string,
   port: number,
   handler?: () => Promise<void> | void,
-): Promise<void> => {
+): Promise<HttpServer> => {
   const server = createServer(async (req, res) => {
     try {
       await execute(req as request, res as response);
@@ -24,11 +22,10 @@ const listen = (
       res.end("Internal Server Error");
     }
   });
-  servers.push(server);
   return new Promise((resolve) => {
     server.listen(port, hostname, async () => {
       if (handler) await handler();
-      resolve();
+      resolve(server);
     });
   });
 };
@@ -40,7 +37,7 @@ export const start = async (
   },
   handler?: () => Promise<void> | void,
 ) => {
-  await listen(opts.hostname, opts.port, handler);
+  return await listen(opts.hostname, opts.port, handler);
 };
 
 export const startWithCluster = async (
@@ -69,17 +66,11 @@ export const startWithCluster = async (
   }
 };
 
-const close = (
+export const close = (
   server: Server<typeof IncomingMessage, typeof ServerResponse>,
 ) => {
   return new Promise((resolve) => {
     server.closeAllConnections();
     server.close(resolve);
   });
-};
-
-export const finish = async () => {
-  for (const server of servers) {
-    await close(server);
-  }
 };

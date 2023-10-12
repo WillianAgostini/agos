@@ -1,6 +1,7 @@
 import { get } from "nordus";
 import { app } from "../src/index";
 import { request, response } from "../src/types";
+import { finishHTTPServer, startHTTPServer } from "./utils/server";
 
 type requestWithText = request & {
   text: string;
@@ -10,19 +11,11 @@ describe("routerTree", () => {
   const port = 2002;
 
   beforeEach(async () => {
-    await app.start(
-      {
-        hostname: "localhost",
-        port,
-      },
-      () => {
-        console.log(`Server running at http://localhost:${port}/`);
-      },
-    );
+    await startHTTPServer(port);
   });
 
   afterEach(async () => {
-    await app.finish();
+    await finishHTTPServer();
   });
 
   it("Add middleware from request", async () => {

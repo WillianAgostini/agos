@@ -1,24 +1,17 @@
 import { app } from "../src/index";
 import { get, post } from "nordus";
 import { request, response } from "../src/types";
+import { finishHTTPServer, startHTTPServer } from "./utils/server";
 
 describe("start", () => {
   const port = 2000;
 
   beforeEach(async () => {
-    await app.start(
-      {
-        hostname: "localhost",
-        port,
-      },
-      () => {
-        console.log(`Server running at http://localhost:${port}/`);
-      },
-    );
+    await startHTTPServer(port);
   });
 
   afterEach(async () => {
-    await app.finish();
+    await finishHTTPServer();
   });
 
   it("create server and return data from get request", async () => {
@@ -31,13 +24,16 @@ describe("start", () => {
   });
 
   it("create server and return data from get request", async () => {
-    app.post("/test/:id", async (req: request, res: response) => {
+    app.post("/req", async (req: request, res: response) => {
       const data = await req.json();
       res.toJson({ id: data.id });
     });
 
-    const response = await post(`http://localhost:${port}/test/1`, { id: "1" });
-    expect(response.data).toEqual({ id: "1" });
+    const response = await post<{ id: number }>(
+      `http://localhost:${port}/req`,
+      { id: 1 },
+    );
+    expect(response.data?.id).toEqual(1);
   });
 
   it("create server with all endpoins", async () => {
