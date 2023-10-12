@@ -1,4 +1,4 @@
-import { IncomingMessage, ServerResponse } from "http";
+import { IncomingMessage, ServerResponse, Server } from "node:http";
 
 export type response = ServerResponse<IncomingMessage> & {
   req: IncomingMessage;
@@ -20,3 +20,5 @@ export type Handler = (
   req: request | any,
   res: response | any,
 ) => Promise<void> | void;
+
+export type HttpServer = Server<typeof IncomingMessage, typeof ServerResponse>;

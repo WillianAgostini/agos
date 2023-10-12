@@ -10,7 +10,7 @@ import {
   newPostRoute,
   newPutRoute,
 } from "./routes";
-import { finish, start, startWithCluster } from "./server";
+import { close, start, startWithCluster } from "./server";
 import { request, response } from "./types";
 
 export async function execute(req: request, res: response) {
@@ -43,7 +43,7 @@ const app = {
   execute,
   start,
   startWithCluster,
-  finish,
+  close,
 };
 
 export { app };
